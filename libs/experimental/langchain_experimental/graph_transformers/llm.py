@@ -949,12 +949,12 @@ class LLMGraphTransformer:
             if not isinstance(raw_schema, str):
                 raw_schema = raw_schema.content
             parsed_json = self.json_repair.loads(raw_schema)
-            print("json --> ", parsed_json)
-    
+            # print("json --> ", parsed_json)
+
             # Handle the case where parsed_json is a list with schema and data
             if isinstance(parsed_json, list) and len(parsed_json) == 2:
                 parsed_json = parsed_json[1]  # Extract the actual data
-    
+
             if isinstance(parsed_json, dict):
                 parsed_json = [parsed_json]
             for rel in parsed_json:
@@ -966,25 +966,36 @@ class LLMGraphTransformer:
                     or not rel.get("relation")
                 ):
                     continue
+
+                # Ensure `head` and `head_type` are hashable
+                head = rel["head"]
+                head_type = rel.get("head_type", DEFAULT_NODE_TYPE)
+                if isinstance(head, list):
+                    head = ", ".join(head)  # Convert list to a comma-separated string
+                if isinstance(head_type, list):
+                    head_type = ", ".join(head_type)  # Convert list to a comma-separated string
+
+                # Ensure `tail` and `tail_type` are hashable
+                tail = rel["tail"]
+                tail_type = rel.get("tail_type", DEFAULT_NODE_TYPE)
+                if isinstance(tail, list):
+                    tail = ", ".join(tail)  # Convert list to a comma-separated string
+                if isinstance(tail_type, list):
+                    tail_type = ", ".join(tail_type)  # Convert list to a comma-separated string
+
                 # Nodes need to be deduplicated using a set
                 # Use default Node label for nodes if missing
-                nodes_set.add((rel["head"], rel.get("head_type", DEFAULT_NODE_TYPE)))
-                nodes_set.add((rel["tail"], rel.get("tail_type", DEFAULT_NODE_TYPE)))
-    
-                source_node = Node(
-                    id=rel["head"], type=rel.get("head_type", DEFAULT_NODE_TYPE)
-                )
-                target_node = Node(
-                    id=rel["tail"], type=rel.get("tail_type", DEFAULT_NODE_TYPE)
-                )
+                nodes_set.add((head, head_type))
+                nodes_set.add((tail, tail_type))
+
+                source_node = Node(id=head, type=head_type)
+                target_node = Node(id=tail, type=tail_type)
                 relationships.append(
-                    Relationship(
-                        source=source_node, target=target_node, type=rel["relation"]
-                    )
+                    Relationship(source=source_node, target=target_node, type=rel["relation"])
                 )
             # Create nodes list
             nodes = [Node(id=el[0], type=el[1]) for el in list(nodes_set)]
-    
+
         if self.strict_mode and (self.allowed_nodes or self.allowed_relationships):
             if self.allowed_nodes:
                 lower_allowed_nodes = [el.lower() for el in self.allowed_nodes]
@@ -1022,7 +1033,7 @@ class LLMGraphTransformer:
                         if rel.type.lower()
                         in [el.lower() for el in self.allowed_relationships]  # type: ignore
                     ]
-    
+
         return GraphDocument(nodes=nodes, relationships=relationships, source=document)
 
     async def aconvert_to_graph_documents(
