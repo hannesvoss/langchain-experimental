@@ -949,12 +949,19 @@ class LLMGraphTransformer:
             if not isinstance(raw_schema, str):
                 raw_schema = raw_schema.content
             parsed_json = self.json_repair.loads(raw_schema)
+            print("json --> ", parsed_json)
+    
+            # Handle the case where parsed_json is a list with schema and data
+            if isinstance(parsed_json, list) and len(parsed_json) == 2:
+                parsed_json = parsed_json[1]  # Extract the actual data
+    
             if isinstance(parsed_json, dict):
                 parsed_json = [parsed_json]
             for rel in parsed_json:
                 # Check if mandatory properties are there
                 if (
-                    not rel.get("head")
+                    not isinstance(rel, dict)
+                    or not rel.get("head")
                     or not rel.get("tail")
                     or not rel.get("relation")
                 ):
@@ -963,7 +970,7 @@ class LLMGraphTransformer:
                 # Use default Node label for nodes if missing
                 nodes_set.add((rel["head"], rel.get("head_type", DEFAULT_NODE_TYPE)))
                 nodes_set.add((rel["tail"], rel.get("tail_type", DEFAULT_NODE_TYPE)))
-
+    
                 source_node = Node(
                     id=rel["head"], type=rel.get("head_type", DEFAULT_NODE_TYPE)
                 )
@@ -977,7 +984,7 @@ class LLMGraphTransformer:
                 )
             # Create nodes list
             nodes = [Node(id=el[0], type=el[1]) for el in list(nodes_set)]
-
+    
         if self.strict_mode and (self.allowed_nodes or self.allowed_relationships):
             if self.allowed_nodes:
                 lower_allowed_nodes = [el.lower() for el in self.allowed_nodes]
@@ -1015,7 +1022,7 @@ class LLMGraphTransformer:
                         if rel.type.lower()
                         in [el.lower() for el in self.allowed_relationships]  # type: ignore
                     ]
-
+    
         return GraphDocument(nodes=nodes, relationships=relationships, source=document)
 
     async def aconvert_to_graph_documents(
