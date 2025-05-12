@@ -990,6 +990,9 @@ class LLMGraphTransformer:
 
                 source_node = Node(id=head, type=head_type)
                 target_node = Node(id=tail, type=tail_type)
+
+                print(f"source_node: {source_node} - target_node: {target_node} - type: {rel['relation']}")
+                
                 relationships.append(
                     Relationship(source=source_node, target=target_node, type=rel["relation"])
                 )
