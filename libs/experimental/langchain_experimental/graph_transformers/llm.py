@@ -957,7 +957,7 @@ class LLMGraphTransformer:
 
             if isinstance(parsed_json, dict):
                 parsed_json = [parsed_json]
-            for rel in parsed_json:
+            for rel in parsed_json[1]:
                 # Check if mandatory properties are there
                 if (
                     not isinstance(rel, dict)
