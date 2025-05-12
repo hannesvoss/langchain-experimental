@@ -971,17 +971,17 @@ class LLMGraphTransformer:
                 head = rel["head"]
                 head_type = rel.get("head_type", DEFAULT_NODE_TYPE)
                 if isinstance(head, list):
-                    head = ", ".join(head)  # Convert list to a comma-separated string
+                    head = ", ".join(str(item) if not isinstance(item, dict) else json.dumps(item) for item in head)
                 if isinstance(head_type, list):
-                    head_type = ", ".join(head_type)  # Convert list to a comma-separated string
+                    head_type = ", ".join(str(item) if not isinstance(item, dict) else json.dumps(item) for item in head_type)
 
                 # Ensure `tail` and `tail_type` are hashable
                 tail = rel["tail"]
                 tail_type = rel.get("tail_type", DEFAULT_NODE_TYPE)
                 if isinstance(tail, list):
-                    tail = ", ".join(tail)  # Convert list to a comma-separated string
+                    tail = ", ".join(str(item) if not isinstance(item, dict) else json.dumps(item) for item in tail)
                 if isinstance(tail_type, list):
-                    tail_type = ", ".join(tail_type)  # Convert list to a comma-separated string
+                    tail_type = ", ".join(str(item) if not isinstance(item, dict) else json.dumps(item) for item in tail_type)
 
                 # Nodes need to be deduplicated using a set
                 # Use default Node label for nodes if missing
